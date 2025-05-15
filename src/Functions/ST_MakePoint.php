@@ -27,14 +27,14 @@ final class ST_MakePoint extends FunctionNode
 
         $this->expressions[] = $parser->ArithmeticFactor();
 
-        $TokenType = $parser->getTokenType();
+        $lexer = $parser->getLexer();
 
-        if ($TokenType->isNextToken(TokenType::T_COMMA)) {
+        if ($lexer->isNextToken(TokenType::T_COMMA)) {
             $parser->match(TokenType::T_COMMA);
             $this->expressions[] = $parser->ArithmeticFactor();
         }
 
-        if ($TokenType->isNextToken(TokenType::T_COMMA)) {
+        if ($lexer->isNextToken(TokenType::T_COMMA)) {
             $parser->match(TokenType::T_COMMA);
             $this->expressions[] = $parser->ArithmeticFactor();
         }
