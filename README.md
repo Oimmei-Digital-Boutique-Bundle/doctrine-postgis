@@ -10,7 +10,8 @@ extension for [PostgreSQL](https://www.postgresql.org/).
 
 * [Supported Versions](#supported-versions)
 * [Installation](#installation)
-* [Symfony Setup](#symfony-setup)
+* [Setup](#setup)
+  * [Symfony](#symfony)
 * [Property Mapping](#property-mapping)
 * [Spatial Indexes](#spatial-indexes)
 * [Schema Tool](#schema-tool)
@@ -24,12 +25,12 @@ Supported Versions
 The following table shows the versions which are officially supported by this
 library.
 
-| Dependency    | Supported Versions |
-|:--------------|:-------------------|
-| PostGIS       | 3.0 and 3.1        |
-| PostgreSQL    | < 15               |
-| Doctrine ORM  | ^3.0.0             |
-| Doctrine DBAL | ^4.1.1             |
+| Dependency    | Supported Versions  |
+|:--------------|:--------------------|
+| PostGIS       | 3.0 and 3.1         |
+| PostgreSQL    | 11, 12 and 13       |
+| Doctrine ORM  | ^2.9                |
+| Doctrine DBAL | ^2.13 and ^3.1      |
 
 Installation
 --
@@ -43,29 +44,30 @@ composer require jsor/doctrine-postgis
 Check the [Packagist page](https://packagist.org/packages/jsor/doctrine-postgis)
 for all available versions.
 
-Symfony Setup
+Setup
 --
 
-**Manual Bundle Registration**
-
-If Symfony Flex does not automatically register the bundle, you can manually add it to your ``config/bundles.php`` file:
-
-```php
-return [
-    // Other bundles...
-    Jsor\Doctrine\PostGIS\JsorDoctrinePostgisBundle::class => ['all' => true],
-];
-```
-
-For integrating this library into a Symfony project, configure the schema manager factory in your ``doctrine.yaml``:
+To use the library with the Doctrine ORM, register the
+`ORMSchemaEventSubscriber` event subscriber.
 
 ```php
-# config/packages/doctrine.yaml
-doctrine:
-    dbal:
-        schema_manager_factory: Jsor\Doctrine\PostGIS\Schema\PostGISSchemaManagerFactory
-        # rest of your configuration...
+use Jsor\Doctrine\PostGIS\Event\ORMSchemaEventSubscriber;
+
+$entityManager->getEventManager()->addEventSubscriber(new ORMSchemaEventSubscriber());
 ```
+
+To use it with the DBAL only, register the `DBALSchemaEventSubscriber` event
+subscriber.
+
+```php
+use Jsor\Doctrine\PostGIS\Event\DBALSchemaEventSubscriber;
+
+$connection->getEventManager()->addEventSubscriber(new DBALSchemaEventSubscriber());
+```
+### Symfony
+
+For integrating this library into a Symfony project, read the dedicated
+[Symfony Documentation](docs/symfony.md).
 
 Property Mapping
 --
@@ -93,10 +95,10 @@ class MyEntity
 There are 2 options to configure the geometry.
 
 * `geometry_type`
-  This defines the type of the geometry, like `POINT`, `LINESTRING` etc.
-  If you omit this option, the generic type `GEOMETRY` is used.
+   This defines the type of the geometry, like `POINT`, `LINESTRING` etc.
+   If you omit this option, the generic type `GEOMETRY` is used.
 * `srid`
-  This defines the Spatial Reference System Identifier (SRID) of the geometry.
+   This defines the Spatial Reference System Identifier (SRID) of the geometry.
 
 ### Example
 
@@ -175,18 +177,15 @@ class MyEntity
 Schema Tool
 --
 
-Full support for
-the [ORM Schema Tool](https://docs.doctrine-project.org/projects/doctrine-orm/en/latest/reference/tools.html)
-and
-the [DBAL Schema Manager](https://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/schema-manager.html)
+Full support for the [ORM Schema Tool](https://docs.doctrine-project.org/projects/doctrine-orm/en/latest/reference/tools.html)
+and the [DBAL Schema Manager](https://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/schema-manager.html)
 is provided.
 
 DQL Functions
 --
 
 Most [PostGIS functions](https://postgis.net/docs/reference.html) are also
-available for
-the [Doctrine Query Language](https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html)
+available for the [Doctrine Query Language](https://www.doctrine-project.org/projects/doctrine-orm/en/latest/reference/dql-doctrine-query-language.html)
 (DQL) under the `Jsor\Doctrine\PostGIS\Functions` namespace.
 
 For a full list of all supported functions, see the
@@ -196,7 +195,7 @@ For a full list of all supported functions, see the
 > how to configure the functions with Symfony.
 
 The functions must be registered with the `Doctrine\ORM\Configuration` instance.
-
+ 
 ```php
 $configuration = new Doctrine\ORM\Configuration();
 
@@ -314,7 +313,7 @@ PHP container connected to specific database containers.
 The script names follow the pattern
 `run-<POSTGRESQL_VERSION>-<POSTGIS_VERSION>.sh`.
 
-To run the test suite against PostgreSQL 13 with PostGIS 3.1, use the script
+To run the test suite against PostgreSQL 13 with PostGIS 3.1, use the script 
 `./docker/run-13-31.sh`.
 
 ```bash
